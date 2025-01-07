@@ -8,22 +8,29 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var weatherService: WeatherService
+    
     var body: some View {
-        TabView {
-            WeatherView()
-                .tabItem {
-                    Label("Weather", systemImage: "cloud.sun.fill")
+        NavigationView {
+            Group {
+                switch weatherService.locationStatus {
+                case .unknown:
+                    ProgressView("Checking location permissions...")
+                case .noPermission:
+                    LocationPermissionView(errorMessage: weatherService.errorMessage ?? "")
+                case .error:
+                    ErrorView(message: weatherService.errorMessage ?? "Something went wrong. Please try again.")
+                case .permissionGranted:
+                    if let weather = weatherService.currentWeather {
+                        WeatherDisplay(weather: weather)
+                    } else {
+                        ProgressView("Fetching weather data...")
+                    }
                 }
-            
-            RecreationSpotsView()
-                .tabItem {
-                    Label("Places", systemImage: "mappin.and.ellipse")
-                }
-            
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gear")
-                }
+            }
+            .padding()
+            .navigationTitle("WeatherWise")
         }
     }
 }
+

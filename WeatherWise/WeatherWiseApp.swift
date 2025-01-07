@@ -9,9 +9,17 @@ import SwiftUI
 
 @main
 struct WeatherWiseApp: App {
+    @StateObject private var weatherService = WeatherService()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(weatherService)
+                .onAppear {
+                    weatherService.startPeriodicWeatherChecks()
+                }
         }
     }
 }
+
+
