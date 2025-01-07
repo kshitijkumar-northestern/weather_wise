@@ -34,3 +34,41 @@ struct ContentView: View {
     }
 }
 
+struct LocationPermissionView: View {
+    let errorMessage: String
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "location.slash")
+                .font(.system(size: 50))
+                .foregroundColor(.red)
+            
+            Text(errorMessage)
+                .multilineTextAlignment(.center)
+            
+            Button("Open Settings") {
+                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsUrl)
+                }
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
+    }
+}
+
+struct ErrorView: View {
+    let message: String
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 50))
+                .foregroundColor(.yellow)
+            
+            Text(message)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+    }
+}

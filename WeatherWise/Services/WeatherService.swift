@@ -14,7 +14,8 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var errorMessage: String?
     
     private let locationManager = CLLocationManager()
-    private let apiKey = "48460fe7b8a39ff8396bfc568493212a" // Replace with your API key
+    private let apiKey = "48460fe7b8a39ff8396bfc568493212a"
+    private var timer: Timer?
     
     enum LocationStatus {
         case unknown
@@ -31,11 +32,15 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func startPeriodicWeatherChecks() {
-        // Check weather every 30 minutes
-        Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { [weak self] _ in
+        print("🔄 Starting periodic weather checks")
+        
+        timer?.invalidate()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            print("⏰ Weather check timer fired")
             self?.locationManager.startUpdatingLocation()
         }
-        // Initial check
+        
         locationManager.startUpdatingLocation()
     }
     
@@ -59,7 +64,7 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
                 locationName: "\(response.name), \(response.sys.country)"
             )
         } catch {
-            print("Decoding error: \(error)")
+            print("❌ Weather decoding error: \(error)")
             throw error
         }
     }
@@ -93,7 +98,7 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
                 )
                 DispatchQueue.main.async {
                     self.currentWeather = weather
-                    self.checkAndNotifyGoodWeather(weather)
+                    self.sendWeatherNotification(weather)
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -104,13 +109,17 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
-    private func checkAndNotifyGoodWeather(_ weather: WeatherModel) {
-        if weather.isGoodWeather {
-            NotificationManager.shared.scheduleNotification(
-                title: "Perfect Weather Outside! ☀️",
-                body: "It's \(Int(weather.temperature))°C with \(weather.humidity)% humidity in \(weather.locationName). Great time to go outside!"
-            )
-        }
+    private func sendWeatherNotification(_ weather: WeatherModel) {
+        print("🌤️ Sending weather notification for: \(weather.locationName)")
+        NotificationManager.shared.sendNotification(
+            title: "Weather Update",
+            body: """
+            Location: \(weather.locationName)
+            Temperature: \(Int(weather.temperature))°C
+            Humidity: \(weather.humidity)%
+            Time: \(Date().formatted(date: .omitted, time: .shortened))
+            """
+        )
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

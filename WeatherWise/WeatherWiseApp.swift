@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct WeatherWiseApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var weatherService = WeatherService()
     
     var body: some Scene {
@@ -19,6 +20,14 @@ struct WeatherWiseApp: App {
                     weatherService.startPeriodicWeatherChecks()
                 }
         }
+    }
+}
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication,
+                    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Configure initial app setup
+        return true
     }
 }
 

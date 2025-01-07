@@ -9,6 +9,8 @@ import SwiftUI
 
 struct WeatherDisplay: View {
     let weather: WeatherModel
+    @State private var timeRemaining: Int = 30
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -21,7 +23,7 @@ struct WeatherDisplay: View {
                 .foregroundColor(.gray)
             
             HStack {
-                Image(systemName: getWeatherIcon())
+                Image(systemName: getWeatherIcon(condition: weather.condition))
                     .font(.system(size: 60))
                 Text("\(Int(weather.temperature))°C")
                     .font(.system(size: 50))
@@ -32,31 +34,40 @@ struct WeatherDisplay: View {
                 WeatherInfoRow(icon: "wind", label: "Wind Speed", value: "\(String(format: "%.1f", weather.windSpeed)) km/h")
             }
             
-            if weather.isGoodWeather {
-                Text("Perfect weather to go outside!")
-                    .font(.headline)
-                    .foregroundColor(.green)
-                    .padding()
-                    .background(Color.green.opacity(0.2))
-                    .cornerRadius(10)
+            // Countdown Timer
+            HStack {
+                Image(systemName: "clock")
+                Text("Next update in:")
+                Text("\(timeRemaining)s")
+                    .bold()
             }
+            .padding()
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(10)
         }
         .padding()
+        .onReceive(timer) { _ in
+            if timeRemaining > 0 {
+                timeRemaining -= 1
+            } else {
+                timeRemaining = 30
+            }
+        }
     }
     
-    private func getWeatherIcon() -> String {
-        switch weather.condition.lowercased() {
-        case _ where weather.condition.contains("rain"):
+    private func getWeatherIcon(condition: String) -> String {
+        switch condition.lowercased() {
+        case _ where condition.contains("rain"):
             return "cloud.rain"
-        case _ where weather.condition.contains("cloud"):
+        case _ where condition.contains("cloud"):
             return "cloud"
-        case _ where weather.condition.contains("snow"):
+        case _ where condition.contains("snow"):
             return "snow"
-        case _ where weather.condition.contains("thunder"):
+        case _ where condition.contains("thunder"):
             return "cloud.bolt"
-        case _ where weather.condition.contains("fog"):
+        case _ where condition.contains("fog"):
             return "cloud.fog"
-        case _ where weather.condition.contains("wind"):
+        case _ where condition.contains("wind"):
             return "wind"
         default:
             return "sun.max"
@@ -77,44 +88,5 @@ struct WeatherInfoRow: View {
             Text(value)
                 .bold()
         }
-    }
-}
-
-struct LocationPermissionView: View {
-    let errorMessage: String
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "location.slash")
-                .font(.system(size: 50))
-                .foregroundColor(.red)
-            
-            Text(errorMessage)
-                .multilineTextAlignment(.center)
-            
-            Button("Open Settings") {
-                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(settingsUrl)
-                }
-            }
-            .buttonStyle(.bordered)
-        }
-        .padding()
-    }
-}
-
-struct ErrorView: View {
-    let message: String
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 50))
-                .foregroundColor(.yellow)
-            
-            Text(message)
-                .multilineTextAlignment(.center)
-        }
-        .padding()
     }
 }
