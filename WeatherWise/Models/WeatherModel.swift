@@ -16,7 +16,10 @@ struct WeatherModel: Codable, Identifiable {
     let locationName: String
     
     var isGoodWeather: Bool {
+        //return true for testing
         return true
+        
+        //production conditons
 //        return temperature >= 18 && temperature <= 25 &&
 //               humidity < 70 &&
 //               windSpeed < 20

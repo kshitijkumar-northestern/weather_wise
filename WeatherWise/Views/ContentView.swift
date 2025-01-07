@@ -22,10 +22,11 @@ struct ContentView: View {
                     ErrorView(message: weatherService.errorMessage ?? "Something went wrong. Please try again.")
                 case .permissionGranted:
                     if let weather = weatherService.currentWeather {
-                        WeatherDisplay(weather: weather)
+                        WeatherDisplay(weather: weather, isTestMode: false) // Set to true for testing
                     } else {
                         ProgressView("Fetching weather data...")
                     }
+                  
                 }
             }
             .padding()
