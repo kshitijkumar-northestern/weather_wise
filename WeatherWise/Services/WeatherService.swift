@@ -31,17 +31,50 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
         locationManager.requestWhenInUseAuthorization()
     }
     
+    // MARK: - Weather Check Methods
+    
+    /// Production method - Checks weather and sends notifications for good weather
     func startPeriodicWeatherChecks() {
         print("🔄 Starting periodic weather checks")
-        
         timer?.invalidate()
         
         timer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             print("⏰ Weather check timer fired")
             self?.locationManager.startUpdatingLocation()
         }
-        
         locationManager.startUpdatingLocation()
+    }
+    
+    /// Test method - Sends test notifications every 5 seconds
+    //func startTestNotifications() {
+    //    print("🧪 Starting test notifications")
+    //    Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
+    //        print("⏰ Test timer fired")
+    //        NotificationManager.shared.sendNotification(
+    //            title: "Test Weather Update",
+    //            body: "Test notification at: \(Date().formatted(date: .omitted, time: .shortened))"
+    //        )
+    //    }
+    //}
+    
+    // MARK: - Weather Data Methods
+    
+    private func sendWeatherNotification(_ weather: WeatherModel) {
+        // Only send notification if weather is good
+        if weather.isGoodWeather {
+            print("🌤️ Good weather detected! Sending notification")
+            NotificationManager.shared.sendNotification(
+                title: "Perfect Weather Outside! ☀️",
+                body: """
+                It's a great time to go outside!
+                Temperature: \(Int(weather.temperature))°C
+                Humidity: \(weather.humidity)%
+                Location: \(weather.locationName)
+                """
+            )
+        } else {
+            print("🌥️ Weather conditions not ideal - no notification sent")
+        }
     }
     
     func fetchWeather(latitude: Double, longitude: Double) async throws -> WeatherModel {
@@ -68,6 +101,8 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
             throw error
         }
     }
+    
+    // MARK: - Location Manager Delegate
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         DispatchQueue.main.async {
@@ -107,19 +142,6 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
                 }
             }
         }
-    }
-    
-    private func sendWeatherNotification(_ weather: WeatherModel) {
-        print("🌤️ Sending weather notification for: \(weather.locationName)")
-        NotificationManager.shared.sendNotification(
-            title: "Weather Update",
-            body: """
-            Location: \(weather.locationName)
-            Temperature: \(Int(weather.temperature))°C
-            Humidity: \(weather.humidity)%
-            Time: \(Date().formatted(date: .omitted, time: .shortened))
-            """
-        )
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
