@@ -21,7 +21,7 @@ class NotificationManager {
     private let minimumInterval: TimeInterval = 2 // Minimum time between notifications
     
     private init() {
-        print("🔔 Initializing NotificationManager")
+        print("Initializing NotificationManager")
         requestAuthorization()
     }
     
@@ -30,11 +30,11 @@ class NotificationManager {
             DispatchQueue.main.async {
                 self.isAuthorized = granted
                 if granted {
-                    print("✅ Notification permission granted")
+                    print("Notification permission granted")
                 } else if let error = error {
-                    print("❌ Error requesting notification permission: \(error)")
+                    print("Error requesting notification permission: \(error)")
                 } else {
-                    print("❌ Notification permission denied")
+                    print("Notification permission denied")
                 }
             }
         }
@@ -52,18 +52,18 @@ class NotificationManager {
     
     func sendNotification(title: String, body: String) {
         guard isAuthorized else {
-            print("❌ Notifications not authorized")
+            print("Notifications not authorized")
             return
         }
         
         // Check for minimum time interval between notifications
         if let lastTime = lastNotificationTime,
            Date().timeIntervalSince(lastTime) < minimumInterval {
-            print("⏱️ Skipping notification - too soon after last one")
+            print("Skipping notification - too soon after last one")
             return
         }
         
-        print("📱 Sending notification with title: \(title)")
+        print("Sending notification with title: \(title)")
         
         let content = UNMutableNotificationContent()
         content.title = title
@@ -82,9 +82,9 @@ class NotificationManager {
         
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("❌ Failed to send notification: \(error)")
+                print("Failed to send notification: \(error)")
             } else {
-                print("✅ Successfully sent notification")
+                print("Successfully sent notification")
                 self.lastNotificationTime = Date()
             }
         }

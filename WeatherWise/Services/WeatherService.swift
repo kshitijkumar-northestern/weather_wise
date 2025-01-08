@@ -37,12 +37,12 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
    }
    
    func startPeriodicWeatherChecks() {
-       print("🔄 Starting periodic weather checks")
+       print("Starting periodic weather checks")
        timer?.invalidate()
        isFirstCheck = true
        
        timer = Timer.scheduledTimer(withTimeInterval: weatherCheckInterval, repeats: true) { [weak self] _ in
-           print("⏰ Weather check timer fired at: \(Date().formatted())")
+           print("Weather check timer fired at: \(Date().formatted())")
            self?.locationManager.startUpdatingLocation()
        }
        
@@ -70,7 +70,7 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
                locationName: "\(response.name), \(response.sys.country)"
            )
        } catch {
-           print("❌ Weather decoding error: \(error)")
+           print("Weather decoding error: \(error)")
            throw error
        }
    }
@@ -84,7 +84,7 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
        }
        
        if weather.isGoodWeather {
-           print("🌤️ Good weather detected! Sending notification")
+           print("Good weather - Sending notification")
            NotificationManager.shared.sendNotification(
                title: "Perfect Weather ☀️",
                body: """
@@ -96,7 +96,7 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
                """
            )
        } else {
-           print("🌥️ Weather conditions not ideal - no notification sent")
+           print("Weather conditions not ideal - no notification sent")
            print("Temperature: \(weather.temperature)°C, Humidity: \(weather.humidity)%, Wind: \(weather.windSpeed) km/h")
        }
    }
