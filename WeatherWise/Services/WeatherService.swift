@@ -51,7 +51,8 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
    }
    
    func fetchWeather(latitude: Double, longitude: Double) async throws -> WeatherModel {
-       let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)&units=metric"
+       //let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)&units=metric"
+       let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)&units=imperial"  // Changed to imperial
        guard let url = URL(string: urlString) else {
            throw URLError(.badURL)
        }
@@ -83,23 +84,41 @@ class WeatherService: NSObject, ObservableObject, CLLocationManagerDelegate {
            return
        }
        
+//       if weather.isGoodWeather {
+//           print("Good weather - Sending notification")
+//           NotificationManager.shared.sendNotification(
+//               title: "Perfect Weather ☀️",
+//               body: """
+//               Time to go outside!
+//               Temperature: \(Int(weather.temperature))°C
+//               Humidity: \(weather.humidity)%
+//               Location: \(weather.locationName)
+//               Time: \(Date().formatted(date: .omitted, time: .shortened))
+//               """
+//           )
+//       } else {
+//           print("Weather conditions not ideal - no notification sent")
+//           print("Temperature: \(weather.temperature)°C, Humidity: \(weather.humidity)%, Wind: \(weather.windSpeed) km/h")
+//       }
+//   }
        if weather.isGoodWeather {
-           print("Good weather - Sending notification")
-           NotificationManager.shared.sendNotification(
-               title: "Perfect Weather ☀️",
-               body: """
-               Time to go outside!
-               Temperature: \(Int(weather.temperature))°C
-               Humidity: \(weather.humidity)%
-               Location: \(weather.locationName)
-               Time: \(Date().formatted(date: .omitted, time: .shortened))
-               """
-           )
-       } else {
-           print("Weather conditions not ideal - no notification sent")
-           print("Temperature: \(weather.temperature)°C, Humidity: \(weather.humidity)%, Wind: \(weather.windSpeed) km/h")
+               print("🌤️ Good weather detected! Sending notification")
+               NotificationManager.shared.sendNotification(
+                   title: "Perfect Weather ☀️",
+                   body: """
+                   Time to go outside!
+                   Temperature: \(Int(weather.temperature))°F
+                   Humidity: \(weather.humidity)%
+                   Wind: \(String(format: "%.1f", weather.windSpeed)) mph
+                   Location: \(weather.locationName)
+                   Time: \(Date().formatted(date: .omitted, time: .shortened))
+                   """
+               )
+           } else {
+               print("🌥️ Weather conditions not ideal - no notification sent")
+               print("Temperature: \(weather.temperature)°F, Humidity: \(weather.humidity)%, Wind: \(weather.windSpeed) mph")
+           }
        }
-   }
    
    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
        DispatchQueue.main.async {
