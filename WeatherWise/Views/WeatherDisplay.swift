@@ -13,21 +13,16 @@ struct WeatherDisplay: View {
     let timerInterval: Int
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
-    // Initialize with different intervals for testing/production
-    init(weather: WeatherModel, isTestMode: Bool = true) {
+    init(weather: WeatherModel, isTestMode: Bool = false) {
         self.weather = weather
-        // Set interval: 30 seconds for testing, 30 minutes for production
         self.timerInterval = isTestMode ? 30 : 1800
-        // Initialize timeRemaining with the interval
         _timeRemaining = State(initialValue: isTestMode ? 30 : 1800)
     }
     
     var formattedTimeRemaining: String {
         if timerInterval <= 60 {
-            // For test mode: show seconds only
             return "\(timeRemaining)s"
         } else {
-            // For production: show minutes and seconds
             let minutes = timeRemaining / 60
             let seconds = timeRemaining % 60
             return String(format: "%02d:%02d", minutes, seconds)
@@ -47,18 +42,15 @@ struct WeatherDisplay: View {
             HStack {
                 Image(systemName: getWeatherIcon(condition: weather.condition))
                     .font(.system(size: 60))
-//                Text("\(Int(weather.temperature))°C")
                 Text("\(Int(weather.temperature))°F")
                     .font(.system(size: 50))
             }
             
             VStack(alignment: .leading, spacing: 8) {
                 WeatherInfoRow(icon: "humidity", label: "Humidity", value: "\(weather.humidity)%")
-            //WeatherInfoRow(icon: "wind", label: "Wind Speed", value: "\(String(format: "%.1f", weather.windSpeed)) km/h")
                 WeatherInfoRow(icon: "wind", label: "Wind Speed", value: "\(String(format: "%.1f", weather.windSpeed)) mph")
             }
             
-            // Countdown Timer
             HStack {
                 Image(systemName: "clock")
                 Text("Next update in:")
