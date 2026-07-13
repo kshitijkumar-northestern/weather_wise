@@ -9,6 +9,7 @@ import Foundation
 @MainActor
 final class WeatherViewModel: ObservableObject {
     @Published private(set) var currentWeather: WeatherModel?
+    @Published private(set) var lastCoordinate: CLLocationCoordinate2D?
     @Published private(set) var forecast: [ForecastSlot] = []
     @Published private(set) var nextGoodWindow: GoodWeatherWindow?
     @Published private(set) var locationStatus: LocationStatus = .unknown
@@ -152,6 +153,7 @@ final class WeatherViewModel: ObservableObject {
                 longitude: coordinate.longitude
             )
             currentWeather = weather
+            lastCoordinate = coordinate
             locationStatus = .permissionGranted
             errorMessage = nil
 
@@ -165,7 +167,12 @@ final class WeatherViewModel: ObservableObject {
             }
 
             let met = weather.meets(criteria)
-            let record = WeatherCheckRecord(weather: weather, metCriteria: met)
+            let record = WeatherCheckRecord(
+                weather: weather,
+                metCriteria: met,
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude
+            )
             history.insert(record, at: 0)
             historyStore.saveHistory(history)
 

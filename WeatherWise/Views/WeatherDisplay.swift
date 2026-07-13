@@ -5,12 +5,14 @@
 //  Created by Kshitij Kumar on 1/6/25.
 //
 
+import CoreLocation
 import SwiftUI
 
 struct WeatherDisplay: View {
     let weather: WeatherModel
     let meetsCriteria: Bool
     let secondsUntilNextCheck: Int
+    var coordinate: CLLocationCoordinate2D?
 
     var formattedTimeRemaining: String {
         let minutes = secondsUntilNextCheck / 60
@@ -38,17 +40,28 @@ struct WeatherDisplay: View {
                     Spacer()
                 }
 
-                Label(
-                    meetsCriteria ? "Ideal for outdoor activities" : "Not ideal yet",
-                    systemImage: meetsCriteria ? "checkmark.circle.fill" : "cloud.sun"
-                )
-                .font(.subheadline.weight(.medium))
-                .padding(.vertical, 8)
-                .padding(.horizontal, 14)
-                .wwGlassCapsule(
-                    tint: meetsCriteria ? WWGlassTint.good : nil,
-                    interactive: false
-                )
+                WWGlassContainer(spacing: 20) {
+                    HStack(spacing: 10) {
+                        Label(
+                            meetsCriteria ? "Ideal for outdoor activities" : "Not ideal yet",
+                            systemImage: meetsCriteria ? "checkmark.circle.fill" : "cloud.sun"
+                        )
+                        .font(.subheadline.weight(.medium))
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 14)
+                        .wwGlassCapsule(
+                            tint: meetsCriteria ? WWGlassTint.good : nil,
+                            interactive: false
+                        )
+
+                        if let coordinate {
+                            DirectionsMenu(
+                                latitude: coordinate.latitude,
+                                longitude: coordinate.longitude
+                            )
+                        }
+                    }
+                }
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)

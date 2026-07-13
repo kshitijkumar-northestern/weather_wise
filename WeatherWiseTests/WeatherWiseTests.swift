@@ -216,6 +216,66 @@ struct ForecastTests {
     }
 }
 
+struct DirectionsBuilderTests {
+    @Test func appleMapsURLContainsDestination() throws {
+        let url = try #require(DirectionsBuilder.appleMaps(latitude: 42.36, longitude: -71.06))
+        #expect(url.host() == "maps.apple.com")
+        #expect(url.query()?.contains("daddr=42.36,-71.06") == true)
+    }
+
+    @Test func googleMapsAppURLUsesScheme() throws {
+        let url = try #require(DirectionsBuilder.googleMapsApp(latitude: 42.36, longitude: -71.06))
+        #expect(url.scheme == "comgooglemaps")
+        #expect(url.absoluteString.contains("daddr=42.36,-71.06"))
+    }
+
+    @Test func googleMapsWebURLIsUniversal() throws {
+        let url = try #require(DirectionsBuilder.googleMapsWeb(latitude: 42.36, longitude: -71.06))
+        #expect(url.host() == "www.google.com")
+        #expect(url.query()?.contains("api=1") == true)
+        #expect(url.query()?.contains("destination=42.36,-71.06") == true)
+    }
+}
+
+struct WeatherCheckRecordCompatibilityTests {
+    @Test func legacyRecordWithoutCoordinatesDecodes() throws {
+        let legacyJSON = """
+        {
+          "id": "00000000-0000-0000-0000-000000000001",
+          "timestamp": 700000000,
+          "temperature": 70,
+          "humidity": 50,
+          "windSpeed": 5,
+          "condition": "Clear",
+          "locationName": "Boston, US",
+          "metCriteria": true
+        }
+        """.data(using: .utf8)!
+
+        let record = try JSONDecoder().decode(WeatherCheckRecord.self, from: legacyJSON)
+        #expect(record.latitude == nil)
+        #expect(record.longitude == nil)
+        #expect(record.locationName == "Boston, US")
+    }
+
+    @Test func recordRoundTripsCoordinates() throws {
+        let record = WeatherCheckRecord(
+            temperature: 70,
+            humidity: 50,
+            windSpeed: 5,
+            condition: "Clear",
+            locationName: "Boston, US",
+            metCriteria: true,
+            latitude: 42.36,
+            longitude: -71.06
+        )
+        let data = try JSONEncoder().encode(record)
+        let decoded = try JSONDecoder().decode(WeatherCheckRecord.self, from: data)
+        #expect(decoded.latitude == 42.36)
+        #expect(decoded.longitude == -71.06)
+    }
+}
+
 struct WeatherDecodingTests {
     @Test func decodesOpenWeatherResponseFixture() throws {
         let json = """
