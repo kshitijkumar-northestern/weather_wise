@@ -7,21 +7,40 @@
 
 import Foundation
 
-struct WeatherModel: Codable, Identifiable {
+struct WeatherModel: Codable, Identifiable, Equatable {
     let id = UUID()
     let temperature: Double
     let condition: String
     let humidity: Int
     let windSpeed: Double
     let locationName: String
-    
+
     enum CodingKeys: String, CodingKey {
         case temperature, condition, humidity, windSpeed, locationName
     }
-    
+
+    /// Evaluates this reading against user-configured criteria.
+    func meets(_ criteria: WeatherCriteria) -> Bool {
+        temperature >= criteria.minimumTemperature &&
+        temperature <= criteria.maximumTemperature &&
+        humidity < criteria.maximumHumidity &&
+        windSpeed < criteria.maximumWindSpeed
+    }
+
+    /// Convenience using default production thresholds.
     var isGoodWeather: Bool {
-        temperature >= 65 && temperature <= 77 &&
-        humidity < 70 &&
-        windSpeed < 12
+        meets(.default)
+    }
+}
+
+extension WeatherModel {
+    static func from(response: OpenWeatherResponse) -> WeatherModel {
+        WeatherModel(
+            temperature: response.main.temp,
+            condition: response.weather.first?.main ?? "Unknown",
+            humidity: response.main.humidity,
+            windSpeed: response.wind.speed,
+            locationName: "\(response.name), \(response.sys.country)"
+        )
     }
 }

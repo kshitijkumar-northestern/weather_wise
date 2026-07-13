@@ -2,94 +2,94 @@
 
 ## Smart Weather Activity Notifier
 
-WeatherWise is an iOS application that monitors real-time weather conditions and notifies users when the weather is ideal for outdoor activities. Never miss a perfect day outdoors again!
+WeatherWise is an iOS application that monitors real-time weather conditions and notifies users when the weather matches their ideal outdoor criteria.
 
 ## Features
 
-- **Real-time Weather Monitoring**: Continuously tracks weather conditions in your location
-- **Smart Notifications**: Sends alerts when the weather is perfect for outdoor activities
-- **Location-based**: Uses your current location for accurate weather information
-- **Customizable Criteria**: Define your ideal weather parameters (temperature, humidity, wind speed)
-- **Clean Interface**: Simple, intuitive UI displays current weather conditions
-- **Background Processing**: Works quietly in the background, only alerting you when needed
+- **Real-time weather monitoring** using OpenWeatherMap (imperial units)
+- **Customizable criteria** for temperature, humidity, wind, and check interval (persisted)
+- **Smart local notifications** when conditions become ideal
+- **Check history** of recent evaluations with pass/fail indicators
+- **Background refresh** via `BGTaskScheduler` (best-effort; iOS controls timing)
+- **MVVM architecture** with protocol-based services for unit testing
 
-## Technical Implementation
+## Architecture
 
-WeatherWise is built with modern iOS development technologies:
+See [ARCHITECTURE.md](ARCHITECTURE.md) for layer diagrams, data flow, and design decisions.
 
-- **SwiftUI**: For building the entire user interface
-- **CoreLocation**: To access the user's current location
-- **UserNotifications**: For delivering timely weather alerts
-- **URLSession**: For API communication with OpenWeatherMap
-- **MVVM Architecture**: For clean separation of concerns
-- **Codable Protocol**: For efficient JSON data handling
-- **Async/Await**: For modern concurrency patterns
-- **Background Processing**: For continuous weather monitoring
+High-level layout:
 
-## Getting Started
+```
+WeatherWise/
+  App/           App entry + background registration
+  Models/        Domain models and API DTOs
+  Services/      Networking, location, notifications, persistence
+  ViewModels/    WeatherViewModel (UI state + orchestration)
+  Views/         SwiftUI screens
+```
+
+## Technical stack
+
+- SwiftUI + Swift Concurrency (async/await)
+- CoreLocation
+- UserNotifications
+- BackgroundTasks (`BGAppRefreshTask`)
+- URLSession + Codable
+- Swift Testing (`import Testing`)
+
+## Getting started
 
 ### Prerequisites
+
 - Xcode 16.2 or later
 - iOS 18.2+ device or simulator
 - OpenWeatherMap API key
 
 ### Installation
-1. Clone the repository
-   ```bash
-   git clone https://github.com/yourusername/WeatherWise.git
-   ```
 
-2. Open `WeatherWise.xcodeproj` in Xcode
-
-3. Configure your OpenWeatherMap API key:
+1. Clone the repository.
+2. Open `WeatherWise.xcodeproj` in Xcode.
+3. Configure secrets:
    ```bash
    cp WeatherWise/Secrets.example.plist WeatherWise/Secrets.plist
    ```
-   Then open `WeatherWise/Secrets.plist` and replace `YOUR_API_KEY_HERE` with your key.
-   `Secrets.plist` is gitignored and will not be committed.
+   Replace `YOUR_API_KEY_HERE` with your OpenWeatherMap key.  
+   `Secrets.plist` is gitignored.
+4. Build and run on a device or simulator.
+5. Allow **Location** and **Notifications** when prompted.
 
-4. Build and run the application on your device or simulator
+### Running tests
+
+In Xcode: **Product → Test** (⌘U).  
+Tests cover criteria evaluation, JSON decoding, persistence, and view-model behavior with mocks.
 
 ## Configuration
 
-### Weather Parameters
-The app determines ideal weather conditions based on these default parameters:
-- Temperature: 65°F - 77°F
-- Humidity: Less than 70%
-- Wind Speed: Less than 12 mph
+Defaults (editable in **Settings** inside the app):
 
-These parameters can be adjusted in `WeatherModel.swift`:
+| Parameter | Default |
+|-----------|---------|
+| Temperature | 65°F – 77°F |
+| Max humidity | &lt; 70% |
+| Max wind | &lt; 12 mph |
+| Check interval | 30 minutes |
 
-```swift
-var isGoodWeather: Bool {
-    return temperature >= 65 && temperature <= 77 && 
-           humidity < 70 &&
-           windSpeed < 12
-}
-```
-
-### Notification Frequency
-By default, the app checks weather conditions every 30 minutes. Adjust this in `WeatherService.swift`:
-
-```swift
-private let weatherCheckInterval: TimeInterval = 1800 // seconds
-```
-
-For UI countdown testing, pass `isTestMode: true` to `WeatherDisplay` to use a 30-second timer.
+Criteria and history are stored in `UserDefaults`.
 
 ## Privacy
 
-WeatherWise requires the following permissions:
-- Location access to provide accurate weather data
-- Notification permission to alert you about ideal weather conditions
+WeatherWise requests:
 
-These permissions are requested when you first launch the app.
+- **Location (When In Use)** for accurate local weather
+- **Notifications** for ideal-weather alerts
+
+Background refresh may run while the app is not open; iOS schedules these tasks opportunistically.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License — see the LICENSE file for details (if present).
 
 ## Acknowledgements
 
-- Weather data provided by [OpenWeatherMap](https://openweathermap.org/)
-- Icons and UI design inspiration from Apple's Weather app
+- Weather data from [OpenWeatherMap](https://openweathermap.org/)
+- UI patterns inspired by Apple’s Weather and system Settings apps
