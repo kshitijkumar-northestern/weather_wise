@@ -1,5 +1,7 @@
 # WeatherWise
 
+[![CI](https://github.com/kshitijkumar-northestern/weather_wise/actions/workflows/ci.yml/badge.svg)](https://github.com/kshitijkumar-northestern/weather_wise/actions/workflows/ci.yml)
+
 ## Smart Weather Activity Notifier
 
 WeatherWise is an iOS application that monitors real-time weather conditions and notifies users when the weather matches their ideal outdoor criteria.
@@ -63,6 +65,10 @@ WeatherWise/
 In Xcode: **Product → Test** (⌘U).  
 Tests cover criteria evaluation, JSON decoding, persistence, and view-model behavior with mocks.
 
+Continuous integration runs the unit test suite on every push and pull request
+to `main` using GitHub Actions (macOS runner + iOS Simulator). See
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
 ## Configuration
 
 Defaults (editable in **Settings** inside the app):
@@ -87,7 +93,7 @@ Background refresh may run while the app is not open; iOS schedules these tasks 
 
 ## License
 
-This project is licensed under the MIT License — see the LICENSE file for details (if present).
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgements
 
