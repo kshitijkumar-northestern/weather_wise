@@ -15,6 +15,9 @@ struct WeatherCheckRecord: Codable, Identifiable, Equatable {
     let condition: String
     let locationName: String
     let metCriteria: Bool
+    // Optional so records saved by earlier app versions still decode.
+    let latitude: Double?
+    let longitude: Double?
 
     init(
         id: UUID = UUID(),
@@ -24,7 +27,9 @@ struct WeatherCheckRecord: Codable, Identifiable, Equatable {
         windSpeed: Double,
         condition: String,
         locationName: String,
-        metCriteria: Bool
+        metCriteria: Bool,
+        latitude: Double? = nil,
+        longitude: Double? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -34,9 +39,17 @@ struct WeatherCheckRecord: Codable, Identifiable, Equatable {
         self.condition = condition
         self.locationName = locationName
         self.metCriteria = metCriteria
+        self.latitude = latitude
+        self.longitude = longitude
     }
 
-    init(weather: WeatherModel, metCriteria: Bool, timestamp: Date = Date()) {
+    init(
+        weather: WeatherModel,
+        metCriteria: Bool,
+        timestamp: Date = Date(),
+        latitude: Double? = nil,
+        longitude: Double? = nil
+    ) {
         self.init(
             timestamp: timestamp,
             temperature: weather.temperature,
@@ -44,7 +57,9 @@ struct WeatherCheckRecord: Codable, Identifiable, Equatable {
             windSpeed: weather.windSpeed,
             condition: weather.condition,
             locationName: weather.locationName,
-            metCriteria: metCriteria
+            metCriteria: metCriteria,
+            latitude: latitude,
+            longitude: longitude
         )
     }
 }

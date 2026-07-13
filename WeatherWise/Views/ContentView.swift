@@ -33,7 +33,8 @@ struct ContentView: View {
                                         WeatherDisplay(
                                             weather: weather,
                                             meetsCriteria: weather.meets(viewModel.criteria),
-                                            secondsUntilNextCheck: viewModel.secondsUntilNextCheck
+                                            secondsUntilNextCheck: viewModel.secondsUntilNextCheck,
+                                            coordinate: viewModel.lastCoordinate
                                         )
                                         ForecastSection(
                                             forecast: viewModel.forecast,

@@ -56,6 +56,9 @@ struct HistoryRow: View {
                 Text(record.locationName)
                     .font(.headline)
                 Spacer()
+                if let latitude = record.latitude, let longitude = record.longitude {
+                    DirectionsMenu(latitude: latitude, longitude: longitude, compact: true)
+                }
                 Image(systemName: record.metCriteria ? "checkmark.circle.fill" : "xmark.circle")
                     .foregroundStyle(record.metCriteria ? .green : .secondary)
             }

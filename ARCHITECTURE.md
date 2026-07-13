@@ -58,6 +58,9 @@ flowchart TD
   `Notifying`, `CriteriaPersisting`, `HistoryPersisting`.
 - Concrete types: `WeatherAPIClient`, `LocationProvider`, `NotificationService`,
   `CriteriaStore`, `HistoryStore`, `BackgroundWeatherScheduler`, `SecretsLoader`.
+- `DirectionsBuilder` — pure URL construction for Apple Maps / Google Maps
+  directions (native deep link + web fallback). Free of UIKit so it is
+  unit-testable; URL opening lives in the `DirectionsMenu` view.
 
 ### `ViewModels/`
 

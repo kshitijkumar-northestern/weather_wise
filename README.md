@@ -14,6 +14,7 @@ WeatherWise is an iOS application that monitors real-time weather conditions and
 - **Smart local notifications** when conditions become ideal
 - **Quiet hours** so ideal weather at 3 AM doesn't wake you up
 - **Check history** of recent evaluations with pass/fail indicators
+- **Directions** to any checked location in Apple Maps or Google Maps (native app with web fallback)
 - **Background refresh** via `BGTaskScheduler` (best-effort; iOS controls timing)
 - **Liquid Glass UI** — Apple's iOS 26 glass design language across every screen, with automatic material fallbacks on earlier iOS versions
 - **MVVM architecture** with protocol-based services for unit testing
