@@ -9,8 +9,10 @@ WeatherWise is an iOS application that monitors real-time weather conditions and
 ## Features
 
 - **Real-time weather monitoring** using OpenWeatherMap (imperial units)
+- **24-hour forecast** with a "next good weather window" banner that answers *when* to go outside
 - **Customizable criteria** for temperature, humidity, wind, and check interval (persisted)
 - **Smart local notifications** when conditions become ideal
+- **Quiet hours** so ideal weather at 3 AM doesn't wake you up
 - **Check history** of recent evaluations with pass/fail indicators
 - **Background refresh** via `BGTaskScheduler` (best-effort; iOS controls timing)
 - **MVVM architecture** with protocol-based services for unit testing
@@ -79,6 +81,7 @@ Defaults (editable in **Settings** inside the app):
 | Max humidity | &lt; 70% |
 | Max wind | &lt; 12 mph |
 | Check interval | 30 minutes |
+| Quiet hours | Off (10 PM – 7 AM when enabled) |
 
 Criteria and history are stored in `UserDefaults`.
 

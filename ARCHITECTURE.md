@@ -41,9 +41,16 @@ flowchart TD
 ### `Models/`
 
 - `WeatherModel` — domain weather reading; `meets(_:)` evaluates criteria.
-- `WeatherCriteria` — user-editable thresholds + check interval.
+- `WeatherCriteria` — user-editable thresholds, check interval, and quiet hours.
+  Evaluation logic is centralized in `isSatisfied(temperature:humidity:windSpeed:)`
+  and shared by current conditions and forecast slots. Decoding tolerates
+  criteria saved by older versions (missing quiet-hour keys fall back to defaults).
+- `ForecastSlot` / `GoodWeatherWindow` — 3-hour forecast slots mapped from the
+  OpenWeatherMap forecast endpoint, plus the computation of the next contiguous
+  stretch of slots matching the user's criteria.
 - `WeatherCheckRecord` — one persisted evaluation for history.
-- `OpenWeatherResponse` — DTO matching the OpenWeatherMap JSON payload.
+- `OpenWeatherResponse` / `ForecastResponse` — DTOs matching the OpenWeatherMap
+  JSON payloads.
 
 ### `Services/`
 
@@ -68,13 +75,18 @@ flowchart TD
 
 1. User grants location + notification permission.
 2. View model requests a coordinate from `LocationProvider`.
-3. `WeatherAPIClient` fetches imperial units from OpenWeatherMap.
-4. Response maps to `WeatherModel`.
-5. Model is evaluated with the current `WeatherCriteria`.
+3. `WeatherAPIClient` fetches current conditions and the 3-hour forecast
+   (imperial units) from OpenWeatherMap.
+4. Responses map to `WeatherModel` and `[ForecastSlot]`.
+5. The current reading is evaluated with the user's `WeatherCriteria`; the
+   forecast is scanned for the next `GoodWeatherWindow`.
 6. A `WeatherCheckRecord` is prepended to history (capped at 50).
-7. If criteria match (and this is not the first launch check), a local
-   notification is sent.
+7. If criteria match (not the first launch check, and not during quiet hours),
+   a local notification is sent.
 8. A background refresh is scheduled for approximately the configured interval.
+
+A forecast failure is deliberately non-fatal: current conditions still render
+and only the forecast section is omitted.
 
 ## Secrets
 

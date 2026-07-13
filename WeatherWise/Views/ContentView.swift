@@ -22,11 +22,20 @@ struct ContentView: View {
                     ErrorView(message: viewModel.errorMessage ?? "Something went wrong. Please try again.")
                 case .permissionGranted:
                     if let weather = viewModel.currentWeather {
-                        WeatherDisplay(
-                            weather: weather,
-                            meetsCriteria: weather.meets(viewModel.criteria),
-                            secondsUntilNextCheck: viewModel.secondsUntilNextCheck
-                        )
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 8) {
+                                WeatherDisplay(
+                                    weather: weather,
+                                    meetsCriteria: weather.meets(viewModel.criteria),
+                                    secondsUntilNextCheck: viewModel.secondsUntilNextCheck
+                                )
+                                ForecastSection(
+                                    forecast: viewModel.forecast,
+                                    nextGoodWindow: viewModel.nextGoodWindow,
+                                    criteria: viewModel.criteria
+                                )
+                            }
+                        }
                     } else if let message = viewModel.errorMessage {
                         ErrorView(message: message)
                     } else {

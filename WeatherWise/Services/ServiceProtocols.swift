@@ -8,6 +8,7 @@ import Foundation
 
 protocol WeatherFetching {
     func fetchWeather(latitude: Double, longitude: Double) async throws -> WeatherModel
+    func fetchForecast(latitude: Double, longitude: Double) async throws -> [ForecastSlot]
 }
 
 protocol Locating: AnyObject {
