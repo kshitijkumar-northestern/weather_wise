@@ -1,5 +1,5 @@
 //
-//  Weather.swift
+//  WeatherModel.swift
 //  WeatherWise
 //
 //  Created by Kshitij Kumar on 1/6/25.
