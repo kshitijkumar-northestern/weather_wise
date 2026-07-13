@@ -9,6 +9,8 @@ import Foundation
 @MainActor
 final class WeatherViewModel: ObservableObject {
     @Published private(set) var currentWeather: WeatherModel?
+    @Published private(set) var forecast: [ForecastSlot] = []
+    @Published private(set) var nextGoodWindow: GoodWeatherWindow?
     @Published private(set) var locationStatus: LocationStatus = .unknown
     @Published private(set) var errorMessage: String?
     @Published var criteria: WeatherCriteria
@@ -75,6 +77,7 @@ final class WeatherViewModel: ObservableObject {
         normalized.normalize()
         criteria = normalized
         criteriaStore.saveCriteria(normalized)
+        nextGoodWindow = GoodWeatherWindow.next(in: forecast, criteria: normalized)
         restartTimers()
         BackgroundWeatherScheduler.schedule(after: normalized.checkInterval)
     }
@@ -152,6 +155,15 @@ final class WeatherViewModel: ObservableObject {
             locationStatus = .permissionGranted
             errorMessage = nil
 
+            // A forecast failure should not fail the whole check.
+            if let slots = try? await weatherFetcher.fetchForecast(
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude
+            ) {
+                forecast = slots
+                nextGoodWindow = GoodWeatherWindow.next(in: slots, criteria: criteria)
+            }
+
             let met = weather.meets(criteria)
             let record = WeatherCheckRecord(weather: weather, metCriteria: met)
             history.insert(record, at: 0)
@@ -182,6 +194,10 @@ final class WeatherViewModel: ObservableObject {
             return
         }
         guard metCriteria else { return }
+        guard !criteria.isQuietTime() else {
+            print("Quiet hours active - notification suppressed")
+            return
+        }
 
         notifier.sendNotification(
             title: "Perfect Weather",

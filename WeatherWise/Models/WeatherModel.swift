@@ -21,10 +21,7 @@ struct WeatherModel: Codable, Identifiable, Equatable {
 
     /// Evaluates this reading against user-configured criteria.
     func meets(_ criteria: WeatherCriteria) -> Bool {
-        temperature >= criteria.minimumTemperature &&
-        temperature <= criteria.maximumTemperature &&
-        humidity < criteria.maximumHumidity &&
-        windSpeed < criteria.maximumWindSpeed
+        criteria.isSatisfied(temperature: temperature, humidity: humidity, windSpeed: windSpeed)
     }
 
     /// Convenience using default production thresholds.

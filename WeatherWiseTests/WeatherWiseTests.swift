@@ -73,6 +73,149 @@ struct WeatherCriteriaTests {
     }
 }
 
+struct QuietHoursTests {
+    private func date(hour: Int) -> Date {
+        var components = DateComponents()
+        components.year = 2026
+        components.month = 7
+        components.day = 13
+        components.hour = hour
+        return Calendar.current.date(from: components)!
+    }
+
+    @Test func disabledQuietHoursNeverSuppress() {
+        var criteria = WeatherCriteria.default
+        criteria.quietHoursEnabled = false
+        #expect(!criteria.isQuietTime(date(hour: 23)))
+        #expect(!criteria.isQuietTime(date(hour: 3)))
+    }
+
+    @Test func wrappingRangeCoversLateNightAndEarlyMorning() {
+        var criteria = WeatherCriteria.default
+        criteria.quietHoursEnabled = true
+        criteria.quietStartHour = 22
+        criteria.quietEndHour = 7
+
+        #expect(criteria.isQuietTime(date(hour: 23)))
+        #expect(criteria.isQuietTime(date(hour: 3)))
+        #expect(!criteria.isQuietTime(date(hour: 12)))
+        #expect(!criteria.isQuietTime(date(hour: 21)))
+        #expect(!criteria.isQuietTime(date(hour: 7)))
+    }
+
+    @Test func nonWrappingRangeWorks() {
+        var criteria = WeatherCriteria.default
+        criteria.quietHoursEnabled = true
+        criteria.quietStartHour = 9
+        criteria.quietEndHour = 17
+
+        #expect(criteria.isQuietTime(date(hour: 12)))
+        #expect(!criteria.isQuietTime(date(hour: 8)))
+        #expect(!criteria.isQuietTime(date(hour: 17)))
+    }
+
+    @Test func legacyCriteriaWithoutQuietHoursStillDecodes() throws {
+        let legacyJSON = """
+        {
+          "minimumTemperature": 60,
+          "maximumTemperature": 80,
+          "maximumHumidity": 65,
+          "maximumWindSpeed": 10,
+          "checkInterval": 900
+        }
+        """.data(using: .utf8)!
+
+        let criteria = try JSONDecoder().decode(WeatherCriteria.self, from: legacyJSON)
+        #expect(criteria.minimumTemperature == 60)
+        #expect(criteria.quietHoursEnabled == false)
+        #expect(criteria.quietStartHour == 22)
+        #expect(criteria.quietEndHour == 7)
+    }
+}
+
+struct ForecastTests {
+    private func slot(hoursFromNow: Double, temperature: Double, base: Date) -> ForecastSlot {
+        ForecastSlot(
+            date: base.addingTimeInterval(hoursFromNow * 3600),
+            temperature: temperature,
+            humidity: 50,
+            windSpeed: 5,
+            condition: "Clear"
+        )
+    }
+
+    @Test func decodesForecastResponseFixture() throws {
+        let json = """
+        {
+          "list": [
+            {
+              "dt": 1752408000,
+              "main": {"temp": 70.0, "humidity": 50},
+              "wind": {"speed": 6.0},
+              "weather": [{"main": "Clear", "description": "clear sky"}]
+            },
+            {
+              "dt": 1752418800,
+              "main": {"temp": 85.0, "humidity": 60},
+              "wind": {"speed": 4.0},
+              "weather": [{"main": "Clouds", "description": "few clouds"}]
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+
+        let response = try JSONDecoder().decode(ForecastResponse.self, from: json)
+        let slots = ForecastSlot.from(response: response)
+
+        #expect(slots.count == 2)
+        #expect(slots[0].temperature == 70.0)
+        #expect(slots[0].condition == "Clear")
+        #expect(slots[1].condition == "Clouds")
+        #expect(slots[0].date < slots[1].date)
+    }
+
+    @Test func nextGoodWindowFindsFirstContiguousRun() {
+        let base = Date()
+        let criteria = WeatherCriteria.default
+        // Too hot, then two good slots, then too cold, then good again.
+        let slots = [
+            slot(hoursFromNow: 1, temperature: 90, base: base),
+            slot(hoursFromNow: 4, temperature: 70, base: base),
+            slot(hoursFromNow: 7, temperature: 72, base: base),
+            slot(hoursFromNow: 10, temperature: 50, base: base),
+            slot(hoursFromNow: 13, temperature: 70, base: base)
+        ]
+
+        let window = GoodWeatherWindow.next(in: slots, criteria: criteria, after: base)
+        #expect(window != nil)
+        #expect(window?.start == base.addingTimeInterval(4 * 3600))
+        #expect(window?.end == base.addingTimeInterval(10 * 3600))
+    }
+
+    @Test func noWindowWhenNothingMatches() {
+        let base = Date()
+        let criteria = WeatherCriteria.default
+        let slots = [
+            slot(hoursFromNow: 1, temperature: 90, base: base),
+            slot(hoursFromNow: 4, temperature: 95, base: base)
+        ]
+
+        #expect(GoodWeatherWindow.next(in: slots, criteria: criteria, after: base) == nil)
+    }
+
+    @Test func pastSlotsAreIgnored() {
+        let base = Date()
+        let criteria = WeatherCriteria.default
+        let slots = [
+            slot(hoursFromNow: -10, temperature: 70, base: base),
+            slot(hoursFromNow: 3, temperature: 70, base: base)
+        ]
+
+        let window = GoodWeatherWindow.next(in: slots, criteria: criteria, after: base)
+        #expect(window?.start == base.addingTimeInterval(3 * 3600))
+    }
+}
+
 struct WeatherDecodingTests {
     @Test func decodesOpenWeatherResponseFixture() throws {
         let json = """
@@ -198,6 +341,7 @@ struct WeatherViewModelTests {
 
 final class MockWeatherFetcher: WeatherFetching {
     let result: Result<WeatherModel, Error>
+    var forecastSlots: [ForecastSlot] = []
 
     init(result: Result<WeatherModel, Error>) {
         self.result = result
@@ -205,6 +349,10 @@ final class MockWeatherFetcher: WeatherFetching {
 
     func fetchWeather(latitude: Double, longitude: Double) async throws -> WeatherModel {
         try result.get()
+    }
+
+    func fetchForecast(latitude: Double, longitude: Double) async throws -> [ForecastSlot] {
+        forecastSlots
     }
 }
 

@@ -47,6 +47,26 @@ struct SettingsView: View {
             }
 
             Section {
+                Toggle("Quiet hours", isOn: $draft.quietHoursEnabled)
+                if draft.quietHoursEnabled {
+                    Picker("From", selection: $draft.quietStartHour) {
+                        ForEach(0..<24, id: \.self) { hour in
+                            Text(hourLabel(hour)).tag(hour)
+                        }
+                    }
+                    Picker("Until", selection: $draft.quietEndHour) {
+                        ForEach(0..<24, id: \.self) { hour in
+                            Text(hourLabel(hour)).tag(hour)
+                        }
+                    }
+                }
+            } header: {
+                Text("Notifications")
+            } footer: {
+                Text("No notifications will be sent during quiet hours, even if the weather is ideal.")
+            }
+
+            Section {
                 Button("Reset to defaults") {
                     draft = .default
                 }
@@ -66,5 +86,12 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private func hourLabel(_ hour: Int) -> String {
+        var components = DateComponents()
+        components.hour = hour
+        let date = Calendar.current.date(from: components) ?? Date()
+        return date.formatted(date: .omitted, time: .shortened)
     }
 }
