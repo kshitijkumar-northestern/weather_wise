@@ -98,8 +98,9 @@ struct WeatherDecodingTests {
 
 struct PersistenceTests {
     @Test func criteriaStoreRoundTrips() {
-        let defaults = UserDefaults(suiteName: "weatherwise.tests.criteria.\(UUID().uuidString)")!
-        defer { defaults.removePersistentDomain(forName: defaults.suiteName!) }
+        let suiteName = "weatherwise.tests.criteria.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let store = CriteriaStore(defaults: defaults)
         var criteria = WeatherCriteria.default
@@ -113,20 +114,23 @@ struct PersistenceTests {
     }
 
     @Test func historyStoreCapsAndOrdersNewestFirst() {
-        let defaults = UserDefaults(suiteName: "weatherwise.tests.history.\(UUID().uuidString)")!
-        defer { defaults.removePersistentDomain(forName: defaults.suiteName!) }
+        let suiteName = "weatherwise.tests.history.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let store = HistoryStore(defaults: defaults, maxRecords: 3)
-        let records = (0..<5).map { index in
-            WeatherCheckRecord(
-                timestamp: Date(timeIntervalSince1970: Double(index)),
+        var records: [WeatherCheckRecord] = []
+        for index in 0..<5 {
+            let record = WeatherCheckRecord(
+                timestamp: Date(timeIntervalSince1970: TimeInterval(index)),
                 temperature: Double(60 + index),
                 humidity: 40,
-                windSpeed: 5,
+                windSpeed: 5.0,
                 condition: "Clear",
                 locationName: "Test",
-                metCriteria: index % 2 == 0
+                metCriteria: index.isMultiple(of: 2)
             )
+            records.append(record)
         }
         store.saveHistory(records)
         let loaded = store.loadHistory()
