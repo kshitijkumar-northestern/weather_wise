@@ -31,7 +31,7 @@ enum WWGlassTint {
 
 /// Applies a Liquid Glass surface behind the content, clipped to `shape`.
 /// Falls back to `.ultraThinMaterial` with a hairline stroke pre-iOS 26.
-struct WWGlassSurface<S: Shape>: ViewModifier {
+struct WWGlassSurface<S: InsettableShape>: ViewModifier {
     let shape: S
     var tint: Color?
     var interactive: Bool
