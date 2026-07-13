@@ -10,13 +10,33 @@ jobs:
   unit-tests:
     name: Build & unit tests (iOS Simulator)
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Ensure iOS simulator runtime is installed
+        run: |
+          if ! xcrun simctl list devices available | grep -q "iPhone"; then
+            echo "No iPhone simulators available; downloading iOS platform..."
+            sudo xcodebuild -downloadPlatform iOS
+          fi
+
+      - name: Pick an available iPhone simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available --json \
+            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.isAvailable and (.name | startswith("iPhone")))] | first | .udid // empty')
+          if [ -z "$UDID" ]; then
+            echo "No available iPhone simulator found" >&2
+            xcrun simctl list devices >&2
+            exit 1
+          fi
+          echo "Using simulator $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       - name: Create placeholder Secrets.plist
         run: cp WeatherWise/Secrets.example.plist WeatherWise/Secrets.plist
@@ -26,7 +46,7 @@ jobs:
           xcodebuild test \
             -project WeatherWise.xcodeproj \
             -scheme WeatherWise \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
             -only-testing:WeatherWiseTests \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
