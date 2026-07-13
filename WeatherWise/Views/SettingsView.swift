@@ -72,6 +72,10 @@ struct SettingsView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background {
+            SkyBackground(condition: viewModel.currentWeather?.condition)
+        }
         .navigationTitle("Settings")
         .onAppear {
             draft = viewModel.criteria

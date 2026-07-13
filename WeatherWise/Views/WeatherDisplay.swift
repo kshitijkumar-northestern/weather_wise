@@ -23,36 +23,50 @@ struct WeatherDisplay: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Current Weather")
-                .font(.largeTitle)
-                .bold()
+            // Hero card
+            VStack(alignment: .leading, spacing: 12) {
+                Text(weather.locationName)
+                    .font(.title2.weight(.semibold))
 
-            Text(weather.locationName)
-                .font(.title2)
-                .foregroundColor(.gray)
+                HStack(alignment: .center, spacing: 16) {
+                    Image(systemName: weatherIcon(for: weather.condition))
+                        .font(.system(size: 58))
+                        .symbolRenderingMode(.hierarchical)
+                    Text("\(Int(weather.temperature))°F")
+                        .font(.system(size: 64, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                    Spacer()
+                }
 
-            HStack {
-                Image(systemName: weatherIcon(for: weather.condition))
-                    .font(.system(size: 60))
-                Text("\(Int(weather.temperature))°F")
-                    .font(.system(size: 50))
-            }
-
-            Label(
-                meetsCriteria ? "Ideal for outdoor activities" : "Not ideal yet",
-                systemImage: meetsCriteria ? "checkmark.circle.fill" : "cloud.sun"
-            )
-            .foregroundStyle(meetsCriteria ? .green : .secondary)
-
-            VStack(alignment: .leading, spacing: 8) {
-                WeatherInfoRow(icon: "humidity", label: "Humidity", value: "\(weather.humidity)%")
-                WeatherInfoRow(
-                    icon: "wind",
-                    label: "Wind Speed",
-                    value: "\(String(format: "%.1f", weather.windSpeed)) mph"
+                Label(
+                    meetsCriteria ? "Ideal for outdoor activities" : "Not ideal yet",
+                    systemImage: meetsCriteria ? "checkmark.circle.fill" : "cloud.sun"
+                )
+                .font(.subheadline.weight(.medium))
+                .padding(.vertical, 8)
+                .padding(.horizontal, 14)
+                .wwGlassCapsule(
+                    tint: meetsCriteria ? WWGlassTint.good : nil,
+                    interactive: false
                 )
             }
+            .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .wwGlassCard(tint: WWGlassTint.hero, cornerRadius: 30)
 
+            // Detail chips
+            WWGlassContainer(spacing: 20) {
+                HStack(spacing: 12) {
+                    MetricChip(icon: "humidity", label: "Humidity", value: "\(weather.humidity)%")
+                    MetricChip(
+                        icon: "wind",
+                        label: "Wind",
+                        value: "\(String(format: "%.1f", weather.windSpeed)) mph"
+                    )
+                }
+            }
+
+            // Countdown
             HStack {
                 Image(systemName: "clock")
                 Text("Next update in:")
@@ -60,11 +74,12 @@ struct WeatherDisplay: View {
                     .bold()
                     .monospacedDigit()
             }
-            .padding()
-            .background(Color.blue.opacity(0.1))
-            .cornerRadius(10)
+            .font(.subheadline)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .wwGlassCard(cornerRadius: 16)
         }
-        .padding()
     }
 
     private func weatherIcon(for condition: String) -> String {
@@ -79,18 +94,24 @@ struct WeatherDisplay: View {
     }
 }
 
-struct WeatherInfoRow: View {
+struct MetricChip: View {
     let icon: String
     let label: String
     let value: String
 
     var body: some View {
-        HStack {
+        VStack(spacing: 6) {
             Image(systemName: icon)
-            Text(label)
-            Spacer()
+                .font(.title3)
             Text(value)
-                .bold()
+                .font(.headline)
+                .monospacedDigit()
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
+        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity)
+        .wwGlassCard(cornerRadius: 18, interactive: true)
     }
 }

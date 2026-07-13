@@ -12,38 +12,49 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                switch viewModel.locationStatus {
-                case .unknown:
-                    ProgressView("Checking location permissions...")
-                case .noPermission:
-                    LocationPermissionView(errorMessage: viewModel.errorMessage ?? "")
-                case .error:
-                    ErrorView(message: viewModel.errorMessage ?? "Something went wrong. Please try again.")
-                case .permissionGranted:
-                    if let weather = viewModel.currentWeather {
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 8) {
-                                WeatherDisplay(
-                                    weather: weather,
-                                    meetsCriteria: weather.meets(viewModel.criteria),
-                                    secondsUntilNextCheck: viewModel.secondsUntilNextCheck
-                                )
-                                ForecastSection(
-                                    forecast: viewModel.forecast,
-                                    nextGoodWindow: viewModel.nextGoodWindow,
-                                    criteria: viewModel.criteria
-                                )
+            ZStack {
+                SkyBackground(condition: viewModel.currentWeather?.condition)
+
+                Group {
+                    switch viewModel.locationStatus {
+                    case .unknown:
+                        StatusCard {
+                            ProgressView("Checking location permissions...")
+                        }
+                    case .noPermission:
+                        LocationPermissionView(errorMessage: viewModel.errorMessage ?? "")
+                    case .error:
+                        ErrorView(message: viewModel.errorMessage ?? "Something went wrong. Please try again.")
+                    case .permissionGranted:
+                        if let weather = viewModel.currentWeather {
+                            ScrollView {
+                                WWGlassContainer(spacing: 28) {
+                                    VStack(alignment: .leading, spacing: 20) {
+                                        WeatherDisplay(
+                                            weather: weather,
+                                            meetsCriteria: weather.meets(viewModel.criteria),
+                                            secondsUntilNextCheck: viewModel.secondsUntilNextCheck
+                                        )
+                                        ForecastSection(
+                                            forecast: viewModel.forecast,
+                                            nextGoodWindow: viewModel.nextGoodWindow,
+                                            criteria: viewModel.criteria
+                                        )
+                                    }
+                                    .padding(.vertical)
+                                }
+                            }
+                        } else if let message = viewModel.errorMessage {
+                            ErrorView(message: message)
+                        } else {
+                            StatusCard {
+                                ProgressView("Fetching weather data...")
                             }
                         }
-                    } else if let message = viewModel.errorMessage {
-                        ErrorView(message: message)
-                    } else {
-                        ProgressView("Fetching weather data...")
                     }
                 }
+                .padding(.horizontal)
             }
-            .padding()
             .navigationTitle("WeatherWise")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -70,6 +81,17 @@ struct ContentView: View {
     }
 }
 
+/// Small centered glass panel used for progress and status content.
+struct StatusCard<Content: View>: View {
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        content()
+            .padding(28)
+            .wwGlassCard()
+    }
+}
+
 struct LocationPermissionView: View {
     let errorMessage: String
 
@@ -77,7 +99,7 @@ struct LocationPermissionView: View {
         VStack(spacing: 20) {
             Image(systemName: "location.slash")
                 .font(.system(size: 50))
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
 
             Text(errorMessage)
                 .multilineTextAlignment(.center)
@@ -87,9 +109,10 @@ struct LocationPermissionView: View {
                     UIApplication.shared.open(settingsUrl)
                 }
             }
-            .buttonStyle(.bordered)
+            .wwGlassButton()
         }
-        .padding()
+        .padding(28)
+        .wwGlassCard(tint: WWGlassTint.danger)
     }
 }
 
@@ -100,11 +123,12 @@ struct ErrorView: View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 50))
-                .foregroundColor(.yellow)
+                .foregroundStyle(.yellow)
 
             Text(message)
                 .multilineTextAlignment(.center)
         }
-        .padding()
+        .padding(28)
+        .wwGlassCard(tint: WWGlassTint.alert)
     }
 }
