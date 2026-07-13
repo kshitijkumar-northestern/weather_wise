@@ -19,3 +19,6 @@ playground.xcworkspace
 
 # macOS
 .DS_Store
+
+# Local secrets (copy from Secrets.example.plist)
+WeatherWise/Secrets.plist

@@ -41,10 +41,12 @@ WeatherWise is built with modern iOS development technologies:
 
 2. Open `WeatherWise.xcodeproj` in Xcode
 
-3. Insert your OpenWeatherMap API key in `WeatherService.swift`
-   ```swift
-   private let apiKey = "YOUR_API_KEY_HERE"
+3. Configure your OpenWeatherMap API key:
+   ```bash
+   cp WeatherWise/Secrets.example.plist WeatherWise/Secrets.plist
    ```
+   Then open `WeatherWise/Secrets.plist` and replace `YOUR_API_KEY_HERE` with your key.
+   `Secrets.plist` is gitignored and will not be committed.
 
 4. Build and run the application on your device or simulator
 
@@ -67,11 +69,13 @@ var isGoodWeather: Bool {
 ```
 
 ### Notification Frequency
-By default, the app checks weather conditions every 30 minutes. For testing purposes, this interval is set to 60 seconds. Adjust this in `WeatherService.swift`:
+By default, the app checks weather conditions every 30 minutes. Adjust this in `WeatherService.swift`:
 
 ```swift
-private let weatherCheckInterval: TimeInterval = 60 // Set to 1800 for 30 minutes
+private let weatherCheckInterval: TimeInterval = 1800 // seconds
 ```
+
+For UI countdown testing, pass `isTestMode: true` to `WeatherDisplay` to use a 30-second timer.
 
 ## Privacy
 
