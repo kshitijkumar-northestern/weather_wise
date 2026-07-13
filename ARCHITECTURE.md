@@ -64,12 +64,32 @@ flowchart TD
 - `WeatherViewModel` owns published UI state, orchestration, timers, history
   updates, and notification decisions. Views do not call networking directly.
 
+### `DesignSystem/`
+
+The reusable UI library for current and future screens:
+
+- `WWGlass.swift` — the Liquid Glass component layer. `wwGlassCard`,
+  `wwGlassCapsule`, `wwGlassCircle`, `wwGlassButton`, `WWGlassContainer`, and
+  `wwGlassID` wrap Apple's iOS 26 `glassEffect` APIs. Every component carries
+  a translucent-material fallback for earlier iOS versions, and all iOS 26
+  API references are wrapped in `#if compiler(>=6.2)` so the project still
+  compiles with pre-iOS-26 SDKs (e.g. Xcode 16 on CI).
+- `SkyBackground.swift` — condition-aware animated gradient behind every
+  screen; deliberately rich so glass surfaces have content to refract.
+
+Guidelines: use `.interactive()` glass only on surfaces the user touches
+(chips, buttons), wrap sibling glass elements in one `WWGlassContainer` so
+they share a single backdrop sample, and pass semantic tints from
+`WWGlassTint` rather than raw colors.
+
 ### `Views/`
 
-- `ContentView` — status routing (permission / error / weather).
-- `WeatherDisplay` — current conditions + countdown.
-- `SettingsView` — edit and save criteria.
-- `HistoryView` — past evaluations.
+- `ContentView` — status routing (permission / error / weather) over the sky
+  background, all states rendered on glass cards.
+- `WeatherDisplay` — hero glass card, metric chips, countdown.
+- `ForecastSection` — good-weather-window banner + forecast chip strip.
+- `SettingsView` — edit and save criteria (glass-backed form).
+- `HistoryView` — past evaluations as glass rows.
 
 ## Data flow (foreground check)
 

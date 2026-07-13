@@ -23,17 +23,21 @@ struct ForecastSection: View {
             if !upcomingSlots.isEmpty {
                 Text("Next 24 hours")
                     .font(.headline)
+                    .padding(.leading, 4)
 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(upcomingSlots) { slot in
-                            ForecastSlotCard(slot: slot, isGood: slot.meets(criteria))
+                    WWGlassContainer(spacing: 24) {
+                        HStack(spacing: 12) {
+                            ForEach(upcomingSlots) { slot in
+                                ForecastSlotCard(slot: slot, isGood: slot.meets(criteria))
+                            }
                         }
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 2)
                     }
                 }
             }
         }
-        .padding(.horizontal)
     }
 
     @ViewBuilder
@@ -45,19 +49,17 @@ struct ForecastSection: View {
                 Image(systemName: "sun.max.fill")
                     .foregroundStyle(.yellow)
             }
-            .font(.subheadline.weight(.medium))
+            .font(.subheadline.weight(.semibold))
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.green.opacity(0.15))
-            .cornerRadius(10)
+            .wwGlassCard(tint: WWGlassTint.good, cornerRadius: 18)
         } else if !forecast.isEmpty {
             Label("No ideal weather window in the forecast", systemImage: "cloud")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(10)
+                .wwGlassCard(cornerRadius: 18)
         }
     }
 
@@ -79,15 +81,21 @@ struct ForecastSlotCard: View {
                 .foregroundStyle(.secondary)
             Image(systemName: icon(for: slot.condition))
                 .font(.title3)
+                .symbolRenderingMode(.hierarchical)
             Text("\(Int(slot.temperature))°")
                 .font(.headline)
+                .monospacedDigit()
             Circle()
-                .fill(isGood ? Color.green : Color.gray.opacity(0.3))
+                .fill(isGood ? Color.green : Color.white.opacity(0.35))
                 .frame(width: 8, height: 8)
         }
-        .padding(10)
-        .background(Color.blue.opacity(0.08))
-        .cornerRadius(10)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
+        .wwGlassCard(
+            tint: isGood ? WWGlassTint.good : nil,
+            cornerRadius: 16,
+            interactive: true
+        )
     }
 
     private func icon(for condition: String) -> String {

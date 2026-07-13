@@ -15,11 +15,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Use the runner image's default Xcode so the bundled iOS simulator
-      # runtime always matches the toolchain. Pinning an older Xcode fails
-      # when the image ships runtimes only for its default Xcode.
-      - name: Show Xcode version
-        run: xcodebuild -version
+      # Prefer the newest Xcode on the image (newest SDK, e.g. iOS 26 for the
+      # Liquid Glass design system) but fall back to the default toolchain if
+      # the selection fails. Never pin exact versions: runner images vary.
+      - name: Select newest available Xcode
+        run: |
+          NEWEST=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$NEWEST" ]; then
+            echo "Selecting $NEWEST"
+            sudo xcode-select -s "$NEWEST/Contents/Developer"
+          fi
+          xcodebuild -version
 
       - name: Ensure iOS simulator runtime is installed
         run: |
