@@ -9,48 +9,50 @@ import SwiftUI
 
 struct WeatherDisplay: View {
     let weather: WeatherModel
-    @State private var timeRemaining: Int
-    let timerInterval: Int
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
-    init(weather: WeatherModel, isTestMode: Bool = false) {
-        self.weather = weather
-        self.timerInterval = isTestMode ? 30 : 1800
-        _timeRemaining = State(initialValue: isTestMode ? 30 : 1800)
-    }
-    
+    let meetsCriteria: Bool
+    let secondsUntilNextCheck: Int
+
     var formattedTimeRemaining: String {
-        if timerInterval <= 60 {
-            return "\(timeRemaining)s"
-        } else {
-            let minutes = timeRemaining / 60
-            let seconds = timeRemaining % 60
+        let minutes = secondsUntilNextCheck / 60
+        let seconds = secondsUntilNextCheck % 60
+        if minutes > 0 {
             return String(format: "%02d:%02d", minutes, seconds)
         }
+        return "\(seconds)s"
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Current Weather")
                 .font(.largeTitle)
                 .bold()
-            
+
             Text(weather.locationName)
                 .font(.title2)
                 .foregroundColor(.gray)
-            
+
             HStack {
-                Image(systemName: getWeatherIcon(condition: weather.condition))
+                Image(systemName: weatherIcon(for: weather.condition))
                     .font(.system(size: 60))
                 Text("\(Int(weather.temperature))°F")
                     .font(.system(size: 50))
             }
-            
+
+            Label(
+                meetsCriteria ? "Ideal for outdoor activities" : "Not ideal yet",
+                systemImage: meetsCriteria ? "checkmark.circle.fill" : "cloud.sun"
+            )
+            .foregroundStyle(meetsCriteria ? .green : .secondary)
+
             VStack(alignment: .leading, spacing: 8) {
                 WeatherInfoRow(icon: "humidity", label: "Humidity", value: "\(weather.humidity)%")
-                WeatherInfoRow(icon: "wind", label: "Wind Speed", value: "\(String(format: "%.1f", weather.windSpeed)) mph")
+                WeatherInfoRow(
+                    icon: "wind",
+                    label: "Wind Speed",
+                    value: "\(String(format: "%.1f", weather.windSpeed)) mph"
+                )
             }
-            
+
             HStack {
                 Image(systemName: "clock")
                 Text("Next update in:")
@@ -63,32 +65,17 @@ struct WeatherDisplay: View {
             .cornerRadius(10)
         }
         .padding()
-        .onReceive(timer) { _ in
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-            } else {
-                timeRemaining = timerInterval
-            }
-        }
     }
-    
-    private func getWeatherIcon(condition: String) -> String {
-        switch condition.lowercased() {
-        case _ where condition.contains("rain"):
-            return "cloud.rain"
-        case _ where condition.contains("cloud"):
-            return "cloud"
-        case _ where condition.contains("snow"):
-            return "snow"
-        case _ where condition.contains("thunder"):
-            return "cloud.bolt"
-        case _ where condition.contains("fog"):
-            return "cloud.fog"
-        case _ where condition.contains("wind"):
-            return "wind"
-        default:
-            return "sun.max"
-        }
+
+    private func weatherIcon(for condition: String) -> String {
+        let lower = condition.lowercased()
+        if lower.contains("rain") { return "cloud.rain" }
+        if lower.contains("cloud") { return "cloud" }
+        if lower.contains("snow") { return "snow" }
+        if lower.contains("thunder") { return "cloud.bolt" }
+        if lower.contains("fog") { return "cloud.fog" }
+        if lower.contains("wind") { return "wind" }
+        return "sun.max"
     }
 }
 
@@ -96,7 +83,7 @@ struct WeatherInfoRow: View {
     let icon: String
     let label: String
     let value: String
-    
+
     var body: some View {
         HStack {
             Image(systemName: icon)
